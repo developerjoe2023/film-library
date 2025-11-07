@@ -1,4 +1,5 @@
-import { Box, TextField, Button } from "@mui/material";
+import { Box, TextField, Button, InputAdornment, IconButton } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
 interface ISearchBox {
     searchQuery: string
@@ -6,14 +7,20 @@ interface ISearchBox {
     handleSearch: () => void
 }
 
-
 export function SearchBox({ searchQuery, setSearchQuery, handleSearch }: ISearchBox) {
+    function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+        if (event.key === "Enter") {
+            event.preventDefault()
+            handleSearch()
+        }
+    }
+
     return (
         <Box
             sx={{
                 position: "relative",
                 width: "100%",
-                height: 500,
+                height: "50vh",
                 borderRadius: 3,
                 overflow: "hidden",
                 mx: "auto"
@@ -28,7 +35,7 @@ export function SearchBox({ searchQuery, setSearchQuery, handleSearch }: ISearch
                     height: "100%",
                     objectFit: "cover",
                     objectPosition: "center 0%",
-                    opacity: 0.3,
+                    opacity: 0.4,
                     position: "absolute",
                     top: 0,
                     left: 0
@@ -55,16 +62,24 @@ export function SearchBox({ searchQuery, setSearchQuery, handleSearch }: ISearch
                         backgroundColor: "white",
                         borderRadius: "50px"
                     }}
+                    onKeyDown={handleKeyDown}
                     value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)}
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        sx={{ borderRadius: "50px", px: 3, py: 1, textTransform: "none" }}
+                                        onClick={handleSearch}
+                                    >
+                                        <SearchIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }
+
+                    }}
                 />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ borderRadius: "50px", px: 3, py: 1 }}
-                    onClick={handleSearch}
-                >
-                    Search
-                </Button>
             </Box>
         </Box>
     )

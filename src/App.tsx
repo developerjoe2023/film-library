@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Typography, AppBar, Toolbar, IconButton, Button, Box, TextField } from "@mui/material";
+import { Typography, AppBar, Toolbar, IconButton, Button, Box, ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import { AccountCircle } from '@mui/icons-material';
 import { CardGrid } from "./CardGrid";
 import { IMovie } from "./CardGrid";
@@ -7,25 +7,66 @@ import { SearchBox } from "./SearchBox";
 
 import axios from "axios";
 
+const theme = createTheme({
+  palette: {
+    background: {
+      default: "#ffffff", // 👈 sets the app background color (dark gray / black)
+    },
+    text: {
+      primary: "#000000ff", // 👈 makes all text white
+    },
+  },
+});
+
+interface IMovieReleaseCountry {
+  iso_3166_1: string;
+  certification: string;
+}
+
+interface IMovieReleases {
+  countries: IMovieReleaseCountry[];
+}
+
+interface IMovieDetail extends IMovie {
+  releases?: IMovieReleases;
+}
+
 function App() {
-  const [movies, setMovies] = useState([])
+  const [movies, setMovies] = useState<IMovieDetail[]>([])
   const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearch = () => {
-    axios.get(`https://api.tmdb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${searchQuery}`).then(response => {
-      setMovies(response.data.results.map((movie: IMovie) => ({
+    axios.get(`https://api.tmdb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${searchQuery}&include_adult=false`).then(async (response) => {
+      const movies = response.data.results;
+
+      const detailedMovies = await Promise.all(
+        movies.map((movie: IMovie) =>
+          axios.get(`https://api.tmdb.org/3/movie/${movie.id}?api_key=${TMDB_API_KEY}&append_to_response=releases`)
+            .then(detailResponse => detailResponse.data as IMovieDetail)
+        )
+      );
+
+      const filteredMovies: IMovieDetail[] = detailedMovies.filter((detail: IMovieDetail) => {
+        const gbRelease = detail.releases?.countries?.find((c: IMovieReleaseCountry) => c.iso_3166_1 === 'GB');
+        const cert = gbRelease?.certification || '';
+
+        const certMap: { [key: string]: number } = { 'U': 0, 'PG': 1, '12': 2, '12A': 3, '15': 4, '18': 5 };
+        return certMap[cert] <= certMap['12A'];
+      });
+
+      setMovies(filteredMovies.map((movie: IMovieDetail) => ({
         ...movie,
         year: movie.release_date ? movie.release_date.split('-')[0] : 'Unknown'
-      })))
-    })
-      .catch(error => console.error('API error', error))
+      })));
+    }).catch(error => console.error('API error', error));
   };
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <AppBar position="static">
-        <Toolbar sx={{ bgcolor: "black" }}>
+        <Toolbar sx={{ bgcolor: "#000000ff" }}>
           <IconButton size="large" color="inherit" edge="start">
             <AccountCircle />
           </IconButton>
@@ -53,11 +94,13 @@ function App() {
       </AppBar>
       <Box>
       </Box>
+      <Box sx={{ width: "100%", height: "3vh" }} />
       <SearchBox searchQuery={searchQuery} setSearchQuery={setSearchQuery} handleSearch={handleSearch} />
+      <Box sx={{ width: "100%", height: "3vh" }} />
       <CardGrid
         movies={movies}
       />
-    </>
+    </ThemeProvider>
   );
 }
 
