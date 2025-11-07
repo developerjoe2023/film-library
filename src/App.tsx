@@ -3,16 +3,17 @@ import { Typography, AppBar, Toolbar, IconButton, Button, Box, TextField } from 
 import { AccountCircle } from '@mui/icons-material';
 import { CardGrid } from "./CardGrid";
 import { IMovie } from "./CardGrid";
+import { SearchBox } from "./SearchBox";
 
 import axios from "axios";
 
 function App() {
   const [movies, setMovies] = useState([])
-  const apiKey = import.meta.env.VITE_API_KEY
+  const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearch = () => {
-    axios.get(`https://api.tmdb.org/3/search/movie?api_key=${apiKey}&query=${searchQuery}`).then(response => {
+    axios.get(`https://api.tmdb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${searchQuery}`).then(response => {
       setMovies(response.data.results.map((movie: IMovie) => ({
         ...movie,
         year: movie.release_date ? movie.release_date.split('-')[0] : 'Unknown'
@@ -51,9 +52,8 @@ function App() {
         </Toolbar>
       </AppBar>
       <Box>
-        <TextField label="Search Movie" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} fullWidth sx={{ mb: 2 }} />
-        <Button variant="contained" onClick={handleSearch} fullWidth>Search</Button>
       </Box>
+      <SearchBox searchQuery={searchQuery} setSearchQuery={setSearchQuery} handleSearch={handleSearch} />
       <CardGrid
         movies={movies}
       />
