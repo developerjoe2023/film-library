@@ -7,7 +7,9 @@ interface IMovieCard {
 
 export function MovieCard({ movie }: IMovieCard) {
     const baseUrl = "https://image.tmdb.org/t/p/w500";
-    const imgSrc = movie.poster_path.startsWith('/') ? movie.poster_path : `${baseUrl}${movie.poster_path}`
+    const defaultPoster = 'https://placehold.co/500x750/png?text=No+Poster';
+    const posterPath = movie.poster_path || '';
+    const imgSrc = posterPath.startsWith('/') ? `${baseUrl}${posterPath}` : posterPath || defaultPoster;
 
     return (
         <Card sx={{ maxWidth: 350, border: '1px solid grey' }}>
