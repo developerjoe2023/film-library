@@ -1,16 +1,19 @@
 import { Box, TextField, InputAdornment, IconButton } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { HomepageSearchBox } from "./types";
+import CircularProgress from "@mui/material/CircularProgress";
+import backgroundImg from "./assets/kpop-demon-hunters-3840x2160-23698.jpg";
 
 export function SearchBox({
   searchQuery,
   setSearchQuery,
-  handleSearch,
+  handleFilmSearch,
+  loading,
 }: HomepageSearchBox) {
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Enter") {
       event.preventDefault();
-      handleSearch();
+      handleFilmSearch();
     }
   }
 
@@ -27,7 +30,7 @@ export function SearchBox({
     >
       <Box
         component="img"
-        src="src/assets/kpop-demon-hunters-3840x2160-23698.jpg"
+        src={backgroundImg}
         alt="kpop-demon-hunters-background"
         sx={{
           width: "100%",
@@ -48,8 +51,8 @@ export function SearchBox({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 2,
           px: 2,
+          width: "100%",
         }}
       >
         <TextField
@@ -57,7 +60,7 @@ export function SearchBox({
           placeholder="Search..."
           sx={{
             width: "60%",
-            maxWidth: 400,
+            maxWidth: 345,
             backgroundColor: "white",
             borderRadius: "50px",
           }}
@@ -68,17 +71,21 @@ export function SearchBox({
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    sx={{
-                      borderRadius: "50px",
-                      px: 3,
-                      py: 1,
-                      textTransform: "none",
-                    }}
-                    onClick={handleSearch}
-                  >
-                    <SearchIcon />
-                  </IconButton>
+                  {loading ? (
+                    <CircularProgress />
+                  ) : (
+                    <IconButton
+                      sx={{
+                        borderRadius: "50px",
+                        px: 3,
+                        py: 1,
+                        textTransform: "none",
+                      }}
+                      onClick={handleFilmSearch}
+                    >
+                      <SearchIcon />
+                    </IconButton>
+                  )}
                 </InputAdornment>
               ),
             },

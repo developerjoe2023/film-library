@@ -32,7 +32,8 @@ export interface FilmDetails {
 export interface HomepageSearchBox {
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
-  handleSearch: () => void;
+  handleFilmSearch: () => void;
+  loading: boolean;
 }
 
 export interface FilmDetailsCard {

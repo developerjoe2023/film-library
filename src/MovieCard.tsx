@@ -18,9 +18,10 @@ export function MovieCard({ movie }: FilmDetailsCard) {
   return (
     <Card sx={{ maxWidth: 350, border: "1px solid grey" }}>
       <CardMedia
-        sx={{ aspectRatio: 3 / 4, objectFit: "cover" }}
+        sx={{ aspectRatio: 3 / 4, objectFit: "fill" }}
         component="img"
         image={imgSrc}
+        alt={`${movie.title} poster`}
       />
       <Typography variant="h5" align="center">
         {movie.title}

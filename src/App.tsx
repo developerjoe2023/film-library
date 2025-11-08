@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Typography,
   AppBar,
@@ -9,17 +8,12 @@ import {
   ThemeProvider,
   createTheme,
   CssBaseline,
+  Container,
 } from "@mui/material";
 import { AccountCircle } from "@mui/icons-material";
 import { CardGrid } from "./CardGrid";
 import { SearchBox } from "./SearchBox";
-import {
-  ApiFilmCertification,
-  FilmDetails,
-  FilmDetailsReleases,
-} from "./types";
-
-import axios from "axios";
+import { useFilmSearchTMDB } from "./api/tmdb";
 
 const theme = createTheme({
   palette: {
@@ -33,61 +27,15 @@ const theme = createTheme({
 });
 
 function App() {
-  const [movies, setMovies] = useState<FilmDetailsReleases[]>([]);
-  const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleSearch = () => {
-    axios
-      .get(
-        `https://api.tmdb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${searchQuery}&include_adult=false`,
-      )
-      .then(async (response) => {
-        const movies = response.data.results;
-
-        const detailedMovies = await Promise.all(
-          movies.map((movie: FilmDetails) =>
-            axios
-              .get(
-                `https://api.tmdb.org/3/movie/${movie.id}?api_key=${TMDB_API_KEY}&append_to_response=releases`,
-              )
-              .then(
-                (detailResponse) => detailResponse.data as FilmDetailsReleases,
-              ),
-          ),
-        );
-
-        const filteredMovies: FilmDetailsReleases[] = detailedMovies.filter(
-          (detail: FilmDetailsReleases) => {
-            const gbRelease = detail.releases?.countries?.find(
-              (c: ApiFilmCertification) => c.iso_3166_1 === "GB",
-            );
-            const cert = gbRelease?.certification || "";
-
-            const certMap: { [key: string]: number } = {
-              U: 0,
-              PG: 1,
-              "12": 2,
-              "12A": 3,
-              "15": 4,
-              "18": 5,
-            };
-            return certMap[cert] <= certMap["12A"];
-          },
-        );
-
-        setMovies(
-          filteredMovies.map((movie: FilmDetailsReleases) => ({
-            ...movie,
-            year: movie.release_date
-              ? movie.release_date.split("-")[0]
-              : "Unknown",
-          })),
-        );
-      })
-      .catch((error) => console.error("API error", error));
-  };
-
+  const {
+    movies,
+    searchQuery,
+    setSearchQuery,
+    handleFilmSearch,
+    loading,
+    error,
+  } = useFilmSearchTMDB();
+  console.log(error);
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -126,10 +74,13 @@ function App() {
       <SearchBox
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        handleSearch={handleSearch}
+        handleFilmSearch={handleFilmSearch}
+        loading={loading}
       />
       <Box sx={{ width: "100%", height: "3vh" }} />
-      <CardGrid movies={movies} />
+      <Container maxWidth="lg">
+        <CardGrid movies={movies} />
+      </Container>
     </ThemeProvider>
   );
 }
